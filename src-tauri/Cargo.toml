@@ -42,6 +42,10 @@ machine-uid = "0.6.0"
 
 [target.'cfg(windows)'.dependencies]
 uiautomation = "0.16"
+
+# enigo drives synthetic keystrokes (Cmd/Ctrl+C capture, Cmd/Ctrl+V paste).
+# Supported on Windows and macOS; Linux stays out of scope for now.
+[target.'cfg(any(windows, target_os = "macos"))'.dependencies]
 enigo = "0.6"
 
 [features]

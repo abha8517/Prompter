@@ -4,6 +4,7 @@ import {
   cmd, onHotkeyError,
   type Prompt, type Settings, type HistoryEntry, type ProviderConfig, type FrameworkInfo, type ContextProfile,
 } from "./lib/tauri";
+import { defaultHotkeyLabel } from "./lib/platform";
 import {
   Settings as SettingsIcon, BookOpen, History, Zap, Trash2, Search, AlertTriangle, Copy, Loader2,
 } from "lucide-react";
@@ -384,7 +385,7 @@ function GeneralTab({ settings, onSetting }: {
 
       <div className="mt-8 p-4 bg-bg-700 rounded-lg border border-bg-600">
         <h3 className="text-sm font-semibold mb-2">Keyboard Shortcuts</h3>
-        <KbdRow keys={["Ctrl", "Shift", "E"]} action="Open overlay / optimize selected text" />
+        <KbdRow keys={defaultHotkeyLabel()} action="Open overlay / optimize selected text" />
         <KbdRow keys={["Enter"]} action="Accept and replace in-place" />
         <KbdRow keys={["Esc"]} action="Close overlay" />
       </div>

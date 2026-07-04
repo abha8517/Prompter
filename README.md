@@ -8,11 +8,12 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-0.1.0-blue?style=flat-square" alt="Version" />
-  <img src="https://img.shields.io/badge/platform-Windows%20x64-lightgrey?style=flat-square" alt="Platform" />
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-lightgrey?style=flat-square" alt="Platform" />
   <img src="https://img.shields.io/badge/Tauri-2.0-24C8D8?style=flat-square&logo=tauri" alt="Tauri" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/Rust-edition%202021-CE422B?style=flat-square&logo=rust" alt="Rust" />
-  <img src="https://img.shields.io/badge/tests-31%20passed-brightgreen?style=flat-square" alt="Tests" />
+  <img src="https://img.shields.io/badge/tests-124%20passed-brightgreen?style=flat-square" alt="Tests" />
+  <img src="https://img.shields.io/badge/coverage-69%25%20lines-yellowgreen?style=flat-square" alt="Coverage" />
 </p>
 
 ---
@@ -111,13 +112,14 @@ Custom frameworks can be imported via Settings → Frameworks or by placing `.js
 
 ## Prerequisites
 
-- **Windows 10/11** (x64) — MVP is Windows-only; macOS/Linux are stubbed behind traits
+- **Windows 10/11** (x64) **or macOS 10.15+** (universal: Apple Silicon + Intel)
 - **[Node.js](https://nodejs.org/)** 18+ and npm
 - **[Rust](https://www.rust-lang.org/tools/install)** stable toolchain with `cargo`
 - **At least one LLM provider:**
   - [Ollama](https://ollama.com/) installed and running (for local inference), **or**
   - An API key for a cloud provider (OpenAI, Anthropic, etc.)
-- **WebView2 Runtime** — Preinstalled on Windows 11; bundled with Tauri installers on Windows 10
+- **Windows:** WebView2 Runtime — preinstalled on Windows 11; bundled with Tauri installers on Windows 10
+- **macOS:** grant Prompter **Accessibility** permission (System Settings → Privacy & Security → Accessibility) so the overlay can auto-capture selected text and auto-paste optimized text via synthetic Cmd+C / Cmd+V. Without it, you can still type/paste manually into the overlay.
 
 ---
 
@@ -147,7 +149,9 @@ Download the latest release from [Releases](../../releases):
 |:---------|:-------|:------------|
 | `Prompter_0.1.0_x64_en-US.msi` | MSI | Windows Installer (MSI) |
 | `Prompter_0.1.0_x64-setup.exe` | NSIS | Windows Setup (NSIS) |
-| `prompter.exe` | Portable | Standalone executable |
+| `Prompter_0.1.0_universal.dmg` | DMG | macOS disk image (Apple Silicon + Intel) |
+| `Prompter.app` | App bundle | macOS application bundle (inside the DMG) |
+| `prompter.exe` | Portable | Standalone Windows executable |
 
 ---
 
@@ -175,8 +179,22 @@ cd src-tauri && cargo check
 
 ### Running Tests
 
+Frontend and backend each have their own test suite.
+
 ```bash
-# Run all 31 Rust tests
+# ── Frontend tests (Vitest + Testing Library) ───────────────────────
+
+# Run all 93 frontend tests (no coverage — fast inner loop)
+npm run test
+
+# Run frontend tests with coverage report + threshold gate (CI)
+#   src/lib: 100% lines/functions, 98% branches
+#   Global thresholds enforced: ≥60% lines, ≥60% functions, ≥50% branches
+npm run test:coverage
+
+
+# ── Rust backend tests (31 tests) ──────────────────────────────────
+
 cd src-tauri && cargo test
 ```
 
@@ -189,6 +207,19 @@ npm run tauri build
 ```
 
 Output artifacts are written to `src-tauri/target/release/bundle/`.
+
+### Releasing (CI)
+
+Push a `v*` tag (e.g. `git tag v0.1.0 && git push origin v0.1.0`) to trigger
+[`.github/workflows/release.yml`](.github/workflows/release.yml). It builds the
+app on **Windows** and **macOS** runners in parallel via `tauri-action` and
+attaches every artifact — `.msi`/`.exe` and `.dmg`/`.app` — to a single GitHub
+Release. The macOS job produces a **universal** binary (Apple Silicon + Intel).
+
+The macOS build is unsigned by default. To enable notarized signing later, add
+the `APPLE_CERTIFICATE` / `APPLE_CERTIFICATE_PASSWORD` / `APPLE_SIGNING_IDENTITY`
+/ `APPLE_ID` / `APPLE_PASSWORD` / `APPLE_TEAM_ID` repository secrets — no code
+changes required.
 
 ---
 

@@ -66,8 +66,8 @@ fn capture_via_clipboard(app: &AppHandle) -> anyhow::Result<String> {
     // Clear clipboard to detect if Ctrl+C copied anything.
     let _ = app.clipboard().write_text("".to_string());
 
-    // Send synthetic Ctrl+C
-    #[cfg(windows)]
+    // Send synthetic copy (Ctrl+C on Windows, Cmd+C on macOS).
+    #[cfg(any(windows, target_os = "macos"))]
     {
         use enigo::{Direction, Enigo, Key, Keyboard, Settings};
         if let Ok(mut enigo) = Enigo::new(&Settings::default()) {
@@ -77,9 +77,10 @@ fn capture_via_clipboard(app: &AppHandle) -> anyhow::Result<String> {
             let _ = enigo.key(Key::Meta, Direction::Release);
             let _ = enigo.key(Key::Control, Direction::Release);
 
-            let _ = enigo.key(Key::Control, Direction::Press);
+            let modifier = copy_modifier();
+            let _ = enigo.key(modifier, Direction::Press);
             let _ = enigo.key(Key::Unicode('c'), Direction::Click);
-            let _ = enigo.key(Key::Control, Direction::Release);
+            let _ = enigo.key(modifier, Direction::Release);
         }
     }
 
@@ -104,4 +105,17 @@ fn capture_via_clipboard(app: &AppHandle) -> anyhow::Result<String> {
     }
 
     Ok(captured)
+}
+
+/// Platform copy modifier: Cmd on macOS, Ctrl elsewhere.
+#[cfg(any(windows, target_os = "macos"))]
+fn copy_modifier() -> enigo::Key {
+    #[cfg(target_os = "macos")]
+    {
+        enigo::Key::Meta
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        enigo::Key::Control
+    }
 }

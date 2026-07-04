@@ -29,6 +29,9 @@ src-tauri/target/
 src-tauri/gen/
 Cargo.lock
 
+# Test coverage output
+coverage/
+
 # Accidental device files
 nul
 

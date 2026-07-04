@@ -1,0 +1,53 @@
+name: CI
+
+# Cross-platform build gate: every push/PR to master or a feature branch is
+# compiled on both Windows and macOS to catch cfg-gated regressions early.
+# Does NOT publish anything — it only proves the apps build end to end.
+
+on:
+  push:
+    branches:
+      - master
+      - "feature-*"
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Type-check frontend
+        run: npx tsc --noEmit
+
+      - name: Rust unit tests
+        working-directory: src-tauri
+        run: cargo test --locked
+
+      - name: Build app (no publish)
+        run: npm run tauri build

@@ -133,7 +133,7 @@ pub fn run() {
             let shortcut = settings
                 .as_ref()
                 .map(|s| s.hotkey.clone())
-                .unwrap_or_else(|| "Ctrl+Shift+E".to_string());
+                .unwrap_or_else(default_hotkey_string);
 
             if let Err(e) = hotkey::register(&handle, &shortcut) {
                 tracing::warn!("failed to register hotkey '{shortcut}': {e}");
@@ -184,4 +184,16 @@ fn setup_db(app_data_dir: &std::path::Path) -> DbService {
 
 fn setup_accessibility() -> AccessibilityService {
     AccessibilityService::new().expect("failed to init accessibility service")
+}
+
+/// Platform-aware default hotkey string: Command+Shift+E on macOS, Ctrl+Shift+E elsewhere.
+fn default_hotkey_string() -> String {
+    #[cfg(target_os = "macos")]
+    {
+        "Command+Shift+E".to_string()
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        "Ctrl+Shift+E".to_string()
+    }
 }

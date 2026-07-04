@@ -116,7 +116,8 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            hotkey: "Ctrl+Shift+E".to_string(),
+            // macOS convention is ⌘ (Command); Windows/Linux use Ctrl.
+            hotkey: default_hotkey(),
             theme: "dark".to_string(),
             default_framework: "CREATE".to_string(),
             default_model: "ollama:llama3".to_string(),
@@ -145,6 +146,18 @@ pub struct ProviderConfig {
 }
 
 fn default_true() -> bool { true }
+
+/// Platform-aware default hotkey: Command+Shift+E on macOS, Ctrl+Shift+E elsewhere.
+fn default_hotkey() -> String {
+    #[cfg(target_os = "macos")]
+    {
+        "Command+Shift+E".to_string()
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        "Ctrl+Shift+E".to_string()
+    }
+}
 
 /// Screen/caret position reported by the accessibility layer.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]

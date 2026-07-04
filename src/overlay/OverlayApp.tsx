@@ -8,6 +8,7 @@ import {
   Sparkles, Check, Copy, GitCompare,
   Loader2, AlertTriangle, X, BookOpen, Zap,
 } from "lucide-react";
+import { modLabel } from "../lib/platform";
 
 export default function OverlayApp() {
   // ── State ────────────────────────────────────────────────────────────
@@ -274,7 +275,7 @@ export default function OverlayApp() {
       const result = await cmd.acceptReplacement(optimizedText);
       if (result.fallback) {
         // Clipboard fallback — tell user to paste.
-        setError("Clipboard fallback: press Ctrl+V to paste enhanced text.");
+        setError(`Clipboard fallback: press ${modLabel()}+V to paste enhanced text.`);
       }
       // Success — hide overlay.
       cmd.hideOverlay().catch(() => {});
@@ -282,7 +283,7 @@ export default function OverlayApp() {
       // Fallback: copy to clipboard and let user paste.
       try {
         await navigator.clipboard.writeText(optimizedText);
-        setError("Replacement failed. Press Ctrl+V to paste.");
+        setError(`Replacement failed. Press ${modLabel()}+V to paste.`);
       } catch {
         setError("Replacement failed. Text copied — paste manually.");
       }
@@ -550,7 +551,7 @@ export default function OverlayApp() {
                   ? "bg-bg-600 border-accent text-accent hover:bg-bg-500"
                   : "bg-bg-700 border-bg-600 text-gray-200 hover:bg-bg-600"
               }`}
-              title="Refine optimized prompt (Ctrl+R)"
+              title={`Refine optimized prompt (${modLabel()}+R)`}
             >
               Refine
             </button>

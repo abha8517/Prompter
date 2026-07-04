@@ -94,9 +94,11 @@ impl ReplacementService {
     }
 }
 
-/// Send a synthetic Ctrl+V keypress on Windows via enigo.
-/// Returns `false` on non-Windows or on enigo error.
-#[cfg(windows)]
+/// Send a synthetic paste keystroke via enigo.
+///
+/// Windows: Ctrl+V. macOS: Cmd+V. Returns `false` on unsupported platforms
+/// (Linux is out of scope) or on enigo error.
+#[cfg(any(windows, target_os = "macos"))]
 fn simulate_paste() -> bool {
     use enigo::{Direction, Enigo, Key, Keyboard, Settings};
     let mut enigo = match Enigo::new(&Settings::default()) {
@@ -106,16 +108,30 @@ fn simulate_paste() -> bool {
             return false;
         }
     };
-    // Press Ctrl, click V, release Ctrl.
-    if enigo.key(Key::Control, Direction::Press).is_err() {
+    let modifier = paste_modifier();
+    // Press modifier, click V, release modifier.
+    if enigo.key(modifier, Direction::Press).is_err() {
         return false;
     }
     let v_ok = enigo.key(Key::Unicode('v'), Direction::Click).is_ok();
-    let _ = enigo.key(Key::Control, Direction::Release);
+    let _ = enigo.key(modifier, Direction::Release);
     v_ok
 }
 
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "macos")))]
 fn simulate_paste() -> bool {
     false
+}
+
+/// Platform paste modifier: Cmd on macOS, Ctrl elsewhere.
+#[cfg(any(windows, target_os = "macos"))]
+fn paste_modifier() -> enigo::Key {
+    #[cfg(target_os = "macos")]
+    {
+        enigo::Key::Meta
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        enigo::Key::Control
+    }
 }
